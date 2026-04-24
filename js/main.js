@@ -141,18 +141,27 @@ function renderFluxograma() {
         queue.forEach(item => {
             renderCard(item, rootSection);
             displayedIds.add(item.id_message);
-            displayedIds.add(item.message_tag);
-            
-            // Procura quem depende desta mensagem (id_message + root: any)
-            const dependents = finalJson.filter(msg => 
-                msg.triggered_by[0].id_message === item.id_message && 
-                msg.triggered_by[0].root === "any"
-            );
-            
-            dependents.forEach(dep => {
-                if (!displayedIds.has(dep.id_message) || !displayedIds.has(dep.message_tag)) {
-                    renderCard(dep, rootSection, true); // true indica que é uma ramificação
-                }
+
+            // Agora buscamos quem está plugado neste ID específico E nesta TAG específica
+            // Precisamos percorrer as respostas da mensagem atual para saber quais tags existem
+            const todasAsTagsDaMensagem = [
+                ...item.message_branches.on_success.message.responses.map(r => r.tag),
+                ...item.message_branches.on_failure.message.responses.map(r => r.tag)
+            ];
+
+            todasAsTagsDaMensagem.forEach(tag => {
+                const dependents = finalJson.filter(msg => 
+                    msg.triggered_by[0].root === "any" && 
+                    msg.triggered_by[0].id_message === item.id_message && 
+                    msg.triggered_by[0].message_tag === tag
+                );
+
+                dependents.forEach(dep => {
+                    if (!displayedIds.has(dep.id_message)) {
+                        renderCard(dep, rootSection, true);
+                        displayedIds.add(dep.id_message);
+                    }
+                });
             });
         });
 
@@ -172,6 +181,7 @@ function renderCard(item, container, isChild = false) {
     card.onclick = () => carregarParaEdicao(realIndex);
     
     card.innerHTML = `
+        <div class="plug-info">${isChild ? `🔌 Plug: ${item.triggered_by[0].id_message} (${item.triggered_by[0].message_tag})` : '🔝 Raiz'}</div>
         <div class="plug-info">${isChild ? '🔌 Conectado a: ' + item.triggered_by[0].id_message : '🔝 Início da Raiz'}</div>
         <span class="flow-tag">ID: ${item.id_message}</span>
         <h5>${item.message_branches.on_success.message.title}</h5>

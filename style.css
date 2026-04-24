@@ -126,8 +126,9 @@ button:hover { opacity: 0.9; }
     width: 90%;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     position: relative;
-    min-width: 250px;
-    max-width: 350px;
+    min-width: 200px !important;
+    max-width: 280px !important;
+    margin: 0 !important;
 }
 
 .children-container {
@@ -137,12 +138,13 @@ button:hover { opacity: 0.9; }
     flex-wrap: wrap; /* Se não couber na largura, ele quebra para baixo */
 }
 
-.children-row {
+.tree-level, .children-row {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: flex-start;
     gap: 40px;
-    margin-top: 20px;
+    width: 100%;
 }
 
 .flow-card h4 { margin: 0 0 10px 0; color: var(--primary); }

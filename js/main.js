@@ -161,81 +161,69 @@ function renderFluxograma() {
         rootSection.className = 'root-section';
         rootSection.innerHTML = `<h4 class="root-title">Raiz: ${rootName}</h4>`;
         
-        // 1. Mensagens iniciais da raiz
-        let queue = finalJson.filter(msg => msg.triggered_by[0].root === rootName);
+        // Contentor para as mensagens iniciais da raiz
+        const rootTreeContainer = document.createElement('div');
+        rootTreeContainer.className = 'tree-level';
+        rootSection.appendChild(rootTreeContainer);
+
+        let initialMessages = finalJson.filter(msg => msg.triggered_by[0].root === rootName);
         let displayedIds = new Set();
 
-        // 2. Processar a fila para permitir múltiplos níveis de encadeamento
-        let i = 0;
-        while (i < queue.length) {
-            const currentItem = queue[i];
-            
-            // Evita duplicar o mesmo card na mesma raiz
-            if (!displayedIds.has(currentItem.id_message)) {
-                const isChild = currentItem.triggered_by[0].root === "any";
-                renderCard(currentItem, rootSection, isChild);
-                displayedIds.add(currentItem.id_message);
+        initialMessages.forEach(msg => {
+            renderCard(msg, rootTreeContainer, displayedIds);
+        });
 
-                // 3. Procura quem está "escutando" as tags desta mensagem atual
-                const dependentes = finalJson.filter(msg => 
-                    msg.triggered_by[0].root === "any" && 
-                    msg.triggered_by[0].id_message === currentItem.id_message
-                );
-
-                // Adiciona os dependentes à fila para processamento posterior
-                dependentes.forEach(dep => {
-                    if (!displayedIds.has(dep.id_message)) {
-                        queue.push(dep);
-                    }
-                });
-            }
-            i++;
-        }
-
-        if (rootSection.children.length > 1) {
-            canvas.appendChild(rootSection);
-        }
+        if (rootSection.children.length > 1) canvas.appendChild(rootSection);
     });
 }
 
 // Função auxiliar para desenhar o card (evita repetição de código)
-function renderCard(item, container, isChild = false) {
-    const realIndex = finalJson.indexOf(item);
-    
-    // Cria um wrapper para a mensagem e os seus futuros filhos
-    const wrapper = document.createElement('div');
-    wrapper.className = "message-wrapper";
-    wrapper.style.display = "flex";
-    wrapper.style.flexDirection = "column";
+function renderCard(item, container, displayedIds) {
+    if (displayedIds.has(item.id_message)) return;
+    displayedIds.add(item.id_message);
+
+    const node = document.createElement('div');
+    node.className = 'flow-node';
 
     const card = document.createElement('div');
     card.className = 'flow-card';
+    const realIndex = finalJson.indexOf(item);
     card.onclick = () => carregarParaEdicao(realIndex);
 
-    const triggerData = item.triggered_by[0];
-    const info = isChild 
-        ? `🔌 Conectado: ${triggerData.id_message} [${triggerData.message_tag}]` 
-        : '🔝 Raiz';
+    const isChild = item.triggered_by[0].root === "any";
+    const info = isChild ? `🔌 Conectado: ${item.triggered_by[0].id_message}` : '🔝 Raiz';
 
     card.innerHTML = `
         <div class="plug-info">${info}</div>
         <span class="flow-tag">ID: ${item.id_message}</span>
         <h5>${item.message_branches.on_success.message.title}</h5>
     `;
+    node.appendChild(card);
 
-    wrapper.appendChild(card);
-    
-    // Cria o container onde as ramificações deste card específico vão morar
-    const childrenContainer = document.createElement('div');
-    childrenContainer.className = "children-container";
-    childrenContainer.style.marginTop = "15px";
-    childrenContainer.style.paddingLeft = "30px";
-    wrapper.appendChild(childrenContainer);
+    // Encontrar filhos (quem aponta para este ID)
+    const children = finalJson.filter(msg => 
+        msg.triggered_by[0].root === "any" && 
+        msg.triggered_by[0].id_message === item.id_message
+    );
 
-    container.appendChild(wrapper);
+    if (children.length > 0) {
+        // Desenha a seta de ligação
+        const arrow = document.createElement('div');
+        arrow.className = 'flow-arrow';
+        arrow.innerHTML = '↓';
+        node.appendChild(arrow);
 
-    // Retornamos o container de filhos para que a função principal saiba onde pendurar os próximos
-    return childrenContainer;
+        // Contentor para os filhos ficarem lado a lado
+        const childrenRow = document.createElement('div');
+        childrenRow.className = 'children-row';
+        node.appendChild(childrenRow);
+
+        children.forEach(child => {
+            desenharArvore(child, childrenRow, displayedIds);
+        });
+    }
+
+    container.appendChild(node);
 }
 
 window.carregarParaEdicao = function(index) {

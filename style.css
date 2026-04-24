@@ -108,3 +108,69 @@ button:hover { opacity: 0.9; }
 .response-row div {
     flex: 1; /* Faz os campos dividirem o espaço */
 }
+
+#fluxogram {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 20px;
+    background-color: #f0f2f5; /* Um cinza claro para destacar os cards */
+}
+
+.flow-card {
+    background: white;
+    border-left: 5px solid var(--primary);
+    padding: 15px;
+    border-radius: 8px;
+    width: 90%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.flow-card h4 { margin: 0 0 10px 0; color: var(--primary); }
+.flow-tag { font-size: 0.8rem; background: #eee; padding: 2px 5px; border-radius: 4px; }
+
+.root-section {
+    background: #e9ecef;
+    border: 1px dashed #adb5bd;
+    padding: 15px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    width: 100%;
+}
+
+.root-title {
+    text-transform: uppercase;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 15px;
+}
+
+.plug-info {
+    font-size: 0.7rem;
+    color: var(--success);
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.tag-badge {
+    display: inline-block;
+    background: #4a90e2;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    margin-right: 4px;
+}
+
+.flow-card {
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.flow-card:hover {
+    transform: scale(1.02);
+    border-color: var(--primary);
+    background-color: #f8f9fa;
+}

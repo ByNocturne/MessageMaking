@@ -29,21 +29,17 @@ body {
 }
 
 #message-form {
-    width: 50%;
-    margin: 0;
-    background: white;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 100%; 
+    box-shadow: none; 
 }
 
-#fluxogram {
-    width: 50%;
-    margin: 0;
+#message-form-div, #fluxogram {
+    flex: 1; 
+    height: 100vh;
+    overflow-y: auto;
     background: white;
     padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-sizing: border-box; 
 }
 
 fieldset {
@@ -101,3 +97,14 @@ button {
 }
 
 button:hover { opacity: 0.9; }
+
+.response-row {
+    display: flex;
+    gap: 10px; /* Espaço entre os campos */
+    align-items: flex-end;
+    margin-bottom: 10px;
+}
+
+.response-row div {
+    flex: 1; /* Faz os campos dividirem o espaço */
+}

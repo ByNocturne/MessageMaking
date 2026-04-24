@@ -47,6 +47,11 @@
                         <label>Habilitar Input: <input type="checkbox" class="msg-input-toggle"></label>
                         <label>Máscara: <input type="text" class="msg-mask"></label>
                     </div>
+
+                    <div class="responses-section">
+                        <h4>Respostas (Botões)</h4>
+                        <div class="responses-list" id="responses-list-success"></div>
+                        <button type="button" onclick="addResponseField('responses-list-success')">+ Adicionar</button>     
                     </div>
                 </fieldset>
 
@@ -58,14 +63,20 @@
                     </div>
 
                     <div class="message-group">
-                    <h4>Mensagem</h4>
-                    <label>Título: <input type="text" class="msg-title" value="No action found."></label><br>
-                    <label>Texto: <textarea class="msg-text">No action found.</textarea></label><br>
-                    <label>Mensagem será exibida?: <input type="checkbox" class="msg-show-display"></label>
-                    
-                    <div class="input-settings">
-                        <label>Habilitar Input: <input type="checkbox" class="msg-input-toggle"></label>
-                        <label>Máscara: <input type="text" class="msg-mask"></label>
+                        <h4>Mensagem</h4>
+                        <label>Título: <input type="text" class="msg-title" value="No action found."></label><br>
+                        <label>Texto: <textarea class="msg-text">No action found.</textarea></label><br>
+                        <label>Mensagem será exibida?: <input type="checkbox" class="msg-show-display"></label>
+                        
+                        <div class="input-settings">
+                            <label>Habilitar Input: <input type="checkbox" class="msg-input-toggle"></label>
+                            <label>Máscara: <input type="text" class="msg-mask"></label>
+                        </div>
+
+                        <div class="responses-section">
+                            <h4>Respostas (Botões)</h4>
+                            <div class="responses-list" id="responses-list-failure"></div>
+                            <button type="button" onclick="addResponseField('responses-list-failure')">+ Adicionar</button>     
                     </div>
                     </div>
                 </fieldset>
@@ -78,15 +89,18 @@
                     </div>
                 </fieldset>
 
-                <button type="button" onclick="gerarJson()">Gerar JSON Final</button>
+                <button id="btn-generate-json" type="button">Gerar JSON Final</button>
             </form>
         </div>
 
-        <script type="module" src="js/main.js"></script>
-
         <div id="fluxogram">
-            Diagrama aqui
+            <h3>Visualização do JSON</h3>
+            <pre id="json-preview" style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow: auto; max-height: 80vh;">
+                O JSON aparecerá aqui...
+            </pre>
         </div>
+
+        <script type="module" src="js/main.js"></script>
     </div>
 </body>
 </html>

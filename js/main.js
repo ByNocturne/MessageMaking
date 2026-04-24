@@ -114,11 +114,41 @@ window.addResponseField = function(containerId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('btn-generate-json');
-    if (btn) {
-        btn.addEventListener('click', gerarJson); 
+    const btnLoad = document.getElementById('btn-load-json');
+    const inputFiles = document.getElementById('import-json');
+
+    // Abre a janela de seleção de ficheiro ao clicar no botão
+    if (btnLoad) {
+        btnLoad.addEventListener('click', () => inputFiles.click());
     }
-})
+
+    // Processa o ficheiro assim que for selecionado
+    if (inputFiles) {
+        inputFiles.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Garante que os dados importados vão para o nosso array global
+                    finalJson = Array.isArray(importedData) ? importedData : [importedData];
+
+                    // Atualiza o Preview de texto e o Fluxograma
+                    document.getElementById('json-preview').textContent = JSON.stringify(finalJson, null, 2);
+                    renderFluxograma();
+                    
+                    alert("JSON carregado com sucesso! ✅");
+                } catch (err) {
+                    alert("Erro ao ler o ficheiro JSON. Verifica o formato! ❌");
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
+});
 
 function renderFluxograma() {
     const canvas = document.getElementById('fluxogram');
@@ -131,39 +161,36 @@ function renderFluxograma() {
         rootSection.className = 'root-section';
         rootSection.innerHTML = `<h4 class="root-title">Raiz: ${rootName}</h4>`;
         
-        // 1. Pega as mensagens que iniciam esta raiz específica
+        // 1. Mensagens iniciais da raiz
         let queue = finalJson.filter(msg => msg.triggered_by[0].root === rootName);
-        
-        // 2. Procura mensagens "any" que estejam ligadas a estas mensagens iniciais
-        // Criamos um conjunto de IDs já exibidos para evitar loops infinitos
         let displayedIds = new Set();
 
-        queue.forEach(item => {
-            renderCard(item, rootSection);
-            displayedIds.add(item.id_message);
+        // 2. Processar a fila para permitir múltiplos níveis de encadeamento
+        let i = 0;
+        while (i < queue.length) {
+            const currentItem = queue[i];
+            
+            // Evita duplicar o mesmo card na mesma raiz
+            if (!displayedIds.has(currentItem.id_message)) {
+                const isChild = currentItem.triggered_by[0].root === "any";
+                renderCard(currentItem, rootSection, isChild);
+                displayedIds.add(currentItem.id_message);
 
-            // Agora buscamos quem está plugado neste ID específico E nesta TAG específica
-            // Precisamos percorrer as respostas da mensagem atual para saber quais tags existem
-            const todasAsTagsDaMensagem = [
-                ...item.message_branches.on_success.message.responses.map(r => r.tag),
-                ...item.message_branches.on_failure.message.responses.map(r => r.tag)
-            ];
-
-            todasAsTagsDaMensagem.forEach(tag => {
-                const dependents = finalJson.filter(msg => 
+                // 3. Procura quem está "escutando" as tags desta mensagem atual
+                const dependentes = finalJson.filter(msg => 
                     msg.triggered_by[0].root === "any" && 
-                    msg.triggered_by[0].id_message === item.id_message && 
-                    msg.triggered_by[0].message_tag === tag
+                    msg.triggered_by[0].id_message === currentItem.id_message
                 );
 
-                dependents.forEach(dep => {
+                // Adiciona os dependentes à fila para processamento posterior
+                dependentes.forEach(dep => {
                     if (!displayedIds.has(dep.id_message)) {
-                        renderCard(dep, rootSection, true);
-                        displayedIds.add(dep.id_message);
+                        queue.push(dep);
                     }
                 });
-            });
-        });
+            }
+            i++;
+        }
 
         if (rootSection.children.length > 1) {
             canvas.appendChild(rootSection);
@@ -174,19 +201,41 @@ function renderFluxograma() {
 // Função auxiliar para desenhar o card (evita repetição de código)
 function renderCard(item, container, isChild = false) {
     const realIndex = finalJson.indexOf(item);
+    
+    // Cria um wrapper para a mensagem e os seus futuros filhos
+    const wrapper = document.createElement('div');
+    wrapper.className = "message-wrapper";
+    wrapper.style.display = "flex";
+    wrapper.style.flexDirection = "column";
+
     const card = document.createElement('div');
     card.className = 'flow-card';
-    if (isChild) card.style.marginLeft = "20px"; // Recuo visual para ramificações
-    
     card.onclick = () => carregarParaEdicao(realIndex);
-    
+
+    const triggerData = item.triggered_by[0];
+    const info = isChild 
+        ? `🔌 Conectado: ${triggerData.id_message} [${triggerData.message_tag}]` 
+        : '🔝 Raiz';
+
     card.innerHTML = `
-        <div class="plug-info">${isChild ? `🔌 Plug: ${item.triggered_by[0].id_message} (${item.triggered_by[0].message_tag})` : '🔝 Raiz'}</div>
-        <div class="plug-info">${isChild ? '🔌 Conectado a: ' + item.triggered_by[0].id_message : '🔝 Início da Raiz'}</div>
+        <div class="plug-info">${info}</div>
         <span class="flow-tag">ID: ${item.id_message}</span>
         <h5>${item.message_branches.on_success.message.title}</h5>
     `;
-    container.appendChild(card);
+
+    wrapper.appendChild(card);
+    
+    // Cria o container onde as ramificações deste card específico vão morar
+    const childrenContainer = document.createElement('div');
+    childrenContainer.className = "children-container";
+    childrenContainer.style.marginTop = "15px";
+    childrenContainer.style.paddingLeft = "30px";
+    wrapper.appendChild(childrenContainer);
+
+    container.appendChild(wrapper);
+
+    // Retornamos o container de filhos para que a função principal saiba onde pendurar os próximos
+    return childrenContainer;
 }
 
 window.carregarParaEdicao = function(index) {

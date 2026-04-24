@@ -39,6 +39,23 @@ function getRules() {
 }
 
 function gerarJson() {
+    const camposObrigatorios = ['id_message', 'priority'];
+    let camposVazios = [];
+
+    camposObrigatorios.forEach(id => {
+        const campo = document.getElementById(id);
+        if (!campo || !campo.value.trim()) {
+            camposVazios.push(id);
+            campo.style.border = "2px solid red"; // Feedback visual
+        } else {
+            campo.style.border = ""; 
+        }
+    });
+
+    if (camposVazios.length > 0) {
+        alert("Por favor, preencha os campos obrigatórios: " + camposVazios.join(', '));
+        return; // Para a função aqui
+    }
     const newJson = {
         active: document.getElementById('active').checked,
         id_message: document.getElementById('id_message').value,
@@ -68,17 +85,18 @@ function gerarJson() {
     };
 
     if (editIndex !== null) {
-        // Substitui o item antigo pelo novo no mesmo lugar
         finalJson[editIndex] = newJson;
-        editIndex = null; // Reseta o estado
+        editIndex = null;
         document.getElementById('btn-generate-json').textContent = "Gerar JSON Final";
     } else {
-        // Fluxo normal: adiciona um novo
         finalJson.push(newJson);
     }
 
-    renderFluxograma(); // Em vez de apenas exibir texto, desenha os cards
-    console.log("Fluxograma atualizado ✅");
+    
+    // Atualiza o Preview de texto também
+    document.getElementById('json-preview').textContent = JSON.stringify(finalJson, null, 2);
+    
+    renderFluxograma();
 
 }
 
@@ -115,41 +133,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 })
 
-// No main.js
-
 function renderFluxograma() {
     const canvas = document.getElementById('fluxogram');
     canvas.innerHTML = '<h3>Fluxograma de Mensagens</h3>';
 
-    finalJson.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'flow-card';
+    const roots = ["start", "pre-apply"];
 
-        const roots = ["start", "pre-apply"];
-
-        roots.forEach(rootName => {
-        // 1. Criamos um container para esta raiz
+    roots.forEach(rootName => {
+        // Criar a secção da Raiz
         const rootSection = document.createElement('div');
         rootSection.className = 'root-section';
         rootSection.innerHTML = `<h4 class="root-title">Raiz: ${rootName}</h4>`;
         
-        // 2. Filtramos as mensagens que pertencem a esta raiz ou ramificação
-        const relatedMessages = finalJson.filter(msg => 
-            msg.triggered_by[0].root === rootName || 
-            msg.triggered_by[0].root === "any" // Caso queira permitir mensagens genéricas
-        );
+        // Filtrar mensagens desta raiz específica
+        const relatedMessages = finalJson.filter(msg => msg.triggered_by[0].root === rootName);
         
-        relatedMessages.forEach(item => {
+        relatedMessages.forEach((item) => {
+            // Encontrar o índice real no array global para a edição funcionar
+            const realIndex = finalJson.indexOf(item);
+            
             const card = document.createElement('div');
             card.className = 'flow-card';
-
-            card.style.cursor = "pointer";
-            card.onclick = () => carregarParaEdicao(index);
+            card.onclick = () => carregarParaEdicao(realIndex);
             
-            // Verificamos se ela está "plugada" em alguém
-            const isPlugged = item.triggered_by[0].message_tag !== "";
+            const isPlugged = item.triggered_by[0].id_message !== "";
             const plugInfo = isPlugged ? 
-                `<div class="plug-info">🔌 Plugado em: ${item.triggered_by[0].id_message} (${item.triggered_by[0].message_tag})</div>` : 
+                `<div class="plug-info">🔌 Plugado em: ${item.triggered_by[0].id_message}</div>` : 
                 `<div class="plug-info">🔝 Início da Raiz</div>`;
 
             card.innerHTML = `
@@ -164,43 +173,33 @@ function renderFluxograma() {
             `;
             rootSection.appendChild(card);
         });
-        
-        canvas.appendChild(card);
-        
-        // Adiciona uma "setinha" visual entre os cards, exceto no último
-        if (index < finalJson.length - 1) {
-            const arrow = document.createElement('div');
-            arrow.innerHTML = '↓';
-            arrow.style.fontSize = '24px';
-            canvas.appendChild(arrow);
-            }
-        });
-    })
+
+        if (relatedMessages.length > 0) {
+            canvas.appendChild(rootSection);
+        }
+    });
 }
 
 window.carregarParaEdicao = function(index) {
+    editIndex = index; 
     const data = finalJson[index];
-    
-    // 1. Configurações Básicas
-    document.getElementById('active').checked = data.active;
+
+    // 1. Campos Básicos
     document.getElementById('id_message').value = data.id_message;
     document.getElementById('priority').value = data.priority;
-
-    // 2. Gatilhos (Trigger)
+    document.getElementById('active').checked = data.active;
+    
+    // 2. Gatilhos
     document.querySelector('.trigger-root').value = data.triggered_by[0].root;
     document.querySelector('.trigger-id').value = data.triggered_by[0].id_message;
 
-    // 3. Carregar Blocos de Mensagem (Sucesso e Falha)
+    // 3. Usar a função que reconstrói os blocos (Sucesso e Falha)
     preencherCamposMensagem('branch-success', data.message_branches.on_success);
     preencherCamposMensagem('branch-failure', data.message_branches.on_failure);
 
-    // 4. Mudar o comportamento do botão "Gerar"
-    // Dica: Podemos mudar o texto do botão para "Salvar Alterações"
-    const btnGerar = document.getElementById('btn-generate-json');
-    btnGerar.textContent = "Atualizar Mensagem";
-    btnGerar.onclick = () => salvarEdicao(index);
-    
-    alert(`Editando mensagem: ${data.id_message}`);
+    // 4. Interface
+    document.getElementById('btn-generate-json').textContent = "Atualizar Mensagem";
+    window.scrollTo(0, 0); // Sobe a página para o formulário
 };
 
 function preencherCamposMensagem(containerId, branchData) {
@@ -227,25 +226,3 @@ function preencherCamposMensagem(containerId, branchData) {
         lastRow.querySelector('.resp-end').checked = resp.end_message_flow;
     });
 }
-
-window.carregarParaEdicao = function(index) {
-    editIndex = index; 
-    const data = finalJson[index];
-
-    // Preenche campos básicos
-    document.getElementById('id_message').value = data.id_message;
-    document.getElementById('priority').value = data.priority;
-    document.getElementById('active').checked = data.active;
-    
-    // Preenche os gatilhos
-    document.querySelector('.trigger-root').value = data.triggered_by[0].root;
-    document.querySelector('.trigger-id').value = data.triggered_by[0].id_message;
-
-    // Para as mensagens de Sucesso e Falha, podes criar uma sub-função
-    preencherDadosBranch('branch-success', data.message_branches.on_success);
-    preencherDadosBranch('branch-failure', data.message_branches.on_failure);
-
-    // Muda o texto do botão principal para avisar que é uma edição
-    document.getElementById('btn-generate-json').textContent = "Salvar Alterações";
-};
-

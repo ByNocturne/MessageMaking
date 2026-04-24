@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulador de PDV - Mercafacil</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="layout">
+        <div id="message-form-div">
+            <form id="message-form">
+                <fieldset>
+                    <legend>Configurações Básicas</legend>
+                    <label>Fluxo de Mensagem ativa?: <input type="checkbox" id="active" checked></label><br>
+                    <label>ID da Mensagem: <input type="text" id="id_message" required></label><br>
+                    <label>Prioridade: <input type="number" id="priority" value="1"></label>
+                </fieldset>
+
+                <fieldset id="section-rules">
+                    <legend>Regras de Funções de Seleção</legend>
+                    <div class="rule-item">
+                    <label>Tipo de Funções: <input type="text" class="rule-type"></label>
+                    <label>Resultado esperado: 
+                        <select class="rule-result">
+                        <option value="false">False</option>
+                        <option value="true">True</option>
+                        </select>
+                    </label>
+                    </div>
+                </fieldset>
+
+                <fieldset class="branch-container" id="branch-success">
+                    <legend>Fluxo de Sucesso (on_success)</legend>
+                    
+                    <div class="action-group">
+                    <label>Ação da Mensagem: <input type="text" class="action-type"></label>
+                    </div>
+
+                    <div class="message-group">
+                    <h4>Mensagem</h4>
+                    <label>Título: <input type="text" class="msg-title" value="No action found."></label><br>
+                    <label>Texto: <textarea class="msg-text">No action found.</textarea></label><br>
+                    <label>Mensagem será exibida?: <input type="checkbox" class="msg-show-display"></label>
+                    
+                    <div class="input-settings">
+                        <label>Habilitar Input: <input type="checkbox" class="msg-input-toggle"></label>
+                        <label>Máscara: <input type="text" class="msg-mask"></label>
+                    </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="branch-container" id="branch-failure">
+                    <legend>Fluxo de Insucesso (on_failure)</legend>
+                    
+                    <div class="action-group">
+                    <label>Ação da Mensagem: <input type="text" class="action-type"></label>
+                    </div>
+
+                    <div class="message-group">
+                    <h4>Mensagem</h4>
+                    <label>Título: <input type="text" class="msg-title" value="No action found."></label><br>
+                    <label>Texto: <textarea class="msg-text">No action found.</textarea></label><br>
+                    <label>Mensagem será exibida?: <input type="checkbox" class="msg-show-display"></label>
+                    
+                    <div class="input-settings">
+                        <label>Habilitar Input: <input type="checkbox" class="msg-input-toggle"></label>
+                        <label>Máscara: <input type="text" class="msg-mask"></label>
+                    </div>
+                    </div>
+                </fieldset>
+
+                <fieldset id="section-triggers">
+                    <legend>Regras de Gatilhos</legend>
+                    <div class="trigger-item">
+                    <label>Root: <input type="text" class="trigger-root" value="any"></label>
+                    <label>ID Message: <input type="text" class="trigger-id"></label>
+                    </div>
+                </fieldset>
+
+                <button type="button" onclick="gerarJson()">Gerar JSON Final</button>
+            </form>
+        </div>
+
+        <script type="module" src="js/main.js"></script>
+
+        <div id="fluxogram">
+            Diagrama aqui
+        </div>
+    </div>
+</body>
+</html>

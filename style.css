@@ -7,206 +7,110 @@
   --border: #ddd;
 }
 
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100vh; 
-    width: 100vw;  
-    overflow: hidden; 
-    background: #ddd;
-}
-
-body {
-    font-family: 'Nunito Sans', Roboto, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    background-color: var(--bg-light);
-}
-
-#layout {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-}
-
-#message-form {
-    width: 100%; 
-    box-shadow: none; 
-}
-
-#message-form-div, #fluxogram {
-    flex: 1; 
-    height: 100vh;
-    overflow-y: auto;
-    background: white;
-    padding: 25px;
-    box-sizing: border-box; 
-}
-
-fieldset {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  margin-bottom: 20px;
-  padding: 15px;
-}
-
-legend {
-  font-weight: bold;
-  padding: 0 10px;
-  color: var(--primary);
-}
-
-.branch-container#branch-success { border-left: 5px solid var(--success); }
-.branch-container#branch-failure { border-left: 5px solid var(--danger); }
-
-label {
-  display: block;
-  margin-top: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-input[type="text"], 
-input[type="number"], 
-textarea, 
-select {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  box-sizing: border-box; /* Garante que o padding não quebre a largura */
-}
-
-textarea { height: 80px; resize: vertical; }
-
-input[type="checkbox"] {
-  width: auto;
-  margin-right: 10px;
-}
-
-button {
-  background-color: var(--primary);
-  color: white;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-  width: 100%;
-  transition: opacity 0.2s;
-}
-
-button:hover { opacity: 0.9; }
-
-.response-row {
-    display: flex;
-    gap: 10px; /* Espaço entre os campos */
-    align-items: flex-end;
-    margin-bottom: 10px;
-}
-
-.response-row div {
-    flex: 1; /* Faz os campos dividirem o espaço */
-}
-
+/* Estrutura de Layout */
 #fluxogram {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    align-items: center;
-    padding: 20px;
-    background-color: #f0f2f5; /* Um cinza claro para destacar os cards */
+    flex: 2;
+    display: block; 
+    height: 100vh;
+    overflow-x: auto;
+    overflow-y: auto;
+    padding: 40px;
+    background-color: #f0f2f5;
+    box-sizing: border-box;
 }
 
-.flow-card {
-    background: white;
-    border-left: 5px solid var(--primary);
-    padding: 15px;
-    border-radius: 8px;
-    width: 90%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    position: relative;
-    min-width: 200px !important;
-    max-width: 280px !important;
-    margin: 0 !important;
+.root-section {
+    display: inline-block; 
+    min-width: 100%;
+    margin-bottom: 50px;
+    padding: 30px;
+    border: 2px dashed #adb5bd;
+    border-radius: 15px;
+    background: #ffffff;
+    vertical-align: top;
+    text-align: center;
 }
 
-.children-container {
-    display: flex;
-    flex-direction: row; /* Filhos ficam lado a lado */
-    gap: 20px;
-    flex-wrap: wrap; /* Se não couber na largura, ele quebra para baixo */
-}
-
-.tree-level, .children-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 40px;
-    width: 100%;
-}
-
-.flow-card h4 { margin: 0 0 10px 0; color: var(--primary); }
-.flow-tag { font-size: 0.8rem; background: #eee; padding: 2px 5px; border-radius: 4px; }
-
+/* Lógica da Árvore */
 .flow-node {
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+    padding: 0 20px;
 }
 
-.flow-arrow {
-    font-size: 24px;
-    color: var(--primary);
-    margin: 10px 0;
-    font-weight: bold;
+.node-connector-vertical {
+    width: 2px;
+    height: 20px;
+    background-color: var(--primary);
 }
 
-.root-section {
+.children-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    position: relative;
+    padding-top: 25px;
+}
+
+/* A "trave" horizontal: só aparece se houver múltiplos filhos */
+.children-row.has-multiple-children::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 2px;
+    background-color: var(--primary);
+    width: calc(100% - 240px); /* Ajustado para não passar dos cards externos */
+    transform: translateX(-50%);
+}
+
+.branch-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap:15px;
-    background: #e9ecef;
-    border: 1px dashed #adb5bd;
-    padding: 15px;
-    margin-bottom: 30px;
-    border-radius: 10px;
-    width: 100%;
+    position: relative;
+    flex: 1;
 }
 
-.root-title {
-    text-transform: uppercase;
-    color: #495057;
-    border-bottom: 2px solid #dee2e6;
-    margin-bottom: 15px;
+/* Conector vertical que liga a trave ao card filho */
+.branch-wrapper::before {
+    content: "";
+    height: 20px;
+    width: 2px;
+    background-color: var(--primary);
 }
 
-.plug-info {
+/* Cards e Tags */
+.flow-card {
+    background: white;
+    border-left: 5px solid var(--primary);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    min-width: 200px;
+    max-width: 260px;
+    white-space: normal;
+    z-index: 2;
+}
+
+.arrow-tag {
+    background: var(--success);
+    color: white;
     font-size: 0.7rem;
-    color: var(--success);
+    padding: 2px 8px;
+    border-radius: 4px;
     font-weight: bold;
+    z-index: 3;
+    margin-top: -12px;
     margin-bottom: 5px;
 }
 
-.tag-badge {
-    display: inline-block;
-    background: #4a90e2;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    margin-right: 4px;
-}
-
-.flow-card {
-    cursor: pointer;
-    transition: transform 0.2s, border-color 0.2s;
-}
-
-.flow-card:hover {
-    transform: scale(1.02);
-    border-color: var(--primary);
-    background-color: #f8f9fa;
+.flow-tag { 
+    font-size: 0.75rem; 
+    background: #eee; 
+    padding: 2px 5px; 
+    border-radius: 4px; 
 }

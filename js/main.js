@@ -161,24 +161,24 @@ function renderFluxograma() {
         rootSection.className = 'root-section';
         rootSection.innerHTML = `<h4 class="root-title">Raiz: ${rootName}</h4>`;
         
-        // Contentor para as mensagens iniciais da raiz
         const rootTreeContainer = document.createElement('div');
         rootTreeContainer.className = 'tree-level';
         rootSection.appendChild(rootTreeContainer);
 
-        let initialMessages = finalJson.filter(msg => msg.triggered_by[0].root === rootName);
-        let displayedIds = new Set();
+        const initialMessages = finalJson.filter(msg => msg.triggered_by[0].root === rootName);
+        const displayedIds = new Set();
 
         initialMessages.forEach(msg => {
-            renderCard(msg, rootTreeContainer, displayedIds);
+            renderNode(msg, rootTreeContainer, displayedIds);
         });
 
         if (rootSection.children.length > 1) canvas.appendChild(rootSection);
     });
 }
-
 // Função auxiliar para desenhar o card (evita repetição de código)
-function renderCard(item, container, displayedIds) {
+
+
+function renderNode(item, container, displayedIds) {
     if (displayedIds.has(item.id_message)) return;
     displayedIds.add(item.id_message);
 
@@ -187,42 +187,47 @@ function renderCard(item, container, displayedIds) {
 
     const card = document.createElement('div');
     card.className = 'flow-card';
-    const realIndex = finalJson.indexOf(item);
-    card.onclick = () => carregarParaEdicao(realIndex);
-
-    const isChild = item.triggered_by[0].root === "any";
-    const info = isChild ? `🔌 Conectado: ${item.triggered_by[0].id_message}` : '🔝 Raiz';
-
+    card.onclick = () => carregarParaEdicao(finalJson.indexOf(item));
     card.innerHTML = `
-        <div class="plug-info">${info}</div>
         <span class="flow-tag">ID: ${item.id_message}</span>
         <h5>${item.message_branches.on_success.message.title}</h5>
     `;
     node.appendChild(card);
 
-    // Encontrar filhos (quem aponta para este ID)
     const children = finalJson.filter(msg => 
         msg.triggered_by[0].root === "any" && 
         msg.triggered_by[0].id_message === item.id_message
     );
 
     if (children.length > 0) {
-        // Desenha a seta de ligação
-        const arrow = document.createElement('div');
-        arrow.className = 'flow-arrow';
-        arrow.innerHTML = '↓';
-        node.appendChild(arrow);
+        // Linha vertical que sai do fundo do card pai
+        const connector = document.createElement('div');
+        connector.className = 'node-connector-vertical';
+        node.appendChild(connector);
 
-        // Contentor para os filhos ficarem lado a lado
         const childrenRow = document.createElement('div');
         childrenRow.className = 'children-row';
-        node.appendChild(childrenRow);
+        
+        // Se houver mais de um filho, o CSS ativará a "trave" horizontal
+        if (children.length > 1) {
+            childrenRow.classList.add('has-multiple-children');
+        }
 
         children.forEach(child => {
-            desenharArvore(child, childrenRow, displayedIds);
-        });
-    }
+            const branchWrapper = document.createElement('div');
+            branchWrapper.className = 'branch-wrapper';
 
+            const tagSpan = document.createElement('span');
+            tagSpan.className = 'arrow-tag';
+            tagSpan.textContent = child.triggered_by[0].message_tag || 'next';
+            
+            branchWrapper.appendChild(tagSpan);
+            renderNode(child, branchWrapper, displayedIds);
+            childrenRow.appendChild(branchWrapper);
+        });
+
+        node.appendChild(childrenRow);
+    }
     container.appendChild(node);
 }
 
